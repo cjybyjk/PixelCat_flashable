@@ -1,13 +1,13 @@
 #!/system/bin/sh
 # PixelCat
 # Author: 橘猫520 & yc9559(powercfg) & cjybyjk(script)
-# Platform: sd_821
-# Generated at Sun Nov  4 02:07:36 CST 2018
+# Platform: exynos_8895
+# Generated at Sun Nov  4 02:16:45 CST 2018
 
 C0_GOVERNOR_DIR="/sys/devices/system/cpu/cpu0/cpufreq/interactive"
-C1_GOVERNOR_DIR="/sys/devices/system/cpu/cpu2/cpufreq/interactive"
+C1_GOVERNOR_DIR="/sys/devices/system/cpu/cpu4/cpufreq/interactive"
 C0_CPUFREQ_DIR="/sys/devices/system/cpu/cpu0/cpufreq"
-C1_CPUFREQ_DIR="/sys/devices/system/cpu/cpu2/cpufreq"
+C1_CPUFREQ_DIR="/sys/devices/system/cpu/cpu4/cpufreq"
 
 # $1:timer_rate $2:value
 function set_param_little() 
@@ -39,55 +39,46 @@ function unify_environment()
 {
 	# SELinux permissive
 	setenforce 0
-	# disable hotplug to switch governor
-	set_value 0 /sys/module/msm_thermal/core_control/enabled
-	echo -n disable > /sys/devices/soc/soc:qcom,bcl/mode
-	set_value N /sys/module/msm_thermal/parameters/enabled
+	# Exynos hotplug
+	lock_value 0 /sys/power/cpuhotplug/enabled
+	lock_value 0 /sys/devices/system/cpu/cpuhotplug/enabled
+	lock_value 1 /sys/devices/system/cpu/cpu4/online
+	lock_value 1 /sys/devices/system/cpu/cpu5/online
+	lock_value 1 /sys/devices/system/cpu/cpu6/online
+	lock_value 1 /sys/devices/system/cpu/cpu7/online
 	# in case of using ondemand as default governor
 	lock_value "interactive" ${C0_CPUFREQ_DIR}/scaling_governor
 	lock_value "interactive" ${C1_CPUFREQ_DIR}/scaling_governor
-	# Perfd, nothing to worry about, if error the script will continue
-	stop perfd
 }
 
 function runonce_custom()
 {
-	set_value 90 /proc/sys/kernel/sched_spill_load
-	set_value 0 /proc/sys/kernel/sched_boost
-	set_value 1 /proc/sys/kernel/sched_prefer_sync_wakee_to_waker
-	set_value 40 /proc/sys/kernel/sched_init_task_load
-	set_value 3000000 /proc/sys/kernel/sched_freq_inc_notify
-
 	# avoid permission problem, do not set 0444
-	set_value 1 /dev/cpuset/background/cpus
-	set_value 0-1 /dev/cpuset/system-background/cpus
-	set_value 0-1,2-3 /dev/cpuset/foreground/cpus
-	set_value 0-1,2-3 /dev/cpuset/top-app/cpus
+	set_value 2-3 /dev/cpuset/background/cpus
+	set_value 0-3 /dev/cpuset/system-background/cpus
+	set_value 0-3,4-7 /dev/cpuset/foreground/cpus
+	set_value 0-3,4-7 /dev/cpuset/top-app/cpus
 
-	set_value 25 /proc/sys/kernel/sched_downmigrate
-	set_value 45 /proc/sys/kernel/sched_upmigrate
-
-	lock_value 2500 /sys/module/cpu_boost/parameters/input_boost_ms
-	lock_value 0 /sys/module/msm_performance/parameters/touchboost
-
-	set_param_little use_sched_load 1
-	lock_value 0 ${C0_GOVERNOR_DIR}/ignore_hispeed_on_notif
-	lock_value 0 ${C0_GOVERNOR_DIR}/enable_prediction
-	set_param_big use_sched_load 1
-	lock_value 0 ${C1_GOVERNOR_DIR}/ignore_hispeed_on_notif
-	lock_value 0 ${C1_GOVERNOR_DIR}/enable_prediction
+	# Linaro HMP, between 0 and 1024, maybe compare to the capacity of current cluster
+	# PELT and period average smoothing sampling, so the parameter style differ from WALT by Qualcomm a lot.
+	# https://lists.linaro.org/pipermail/linaro-dev/2012-November/014485.html
+	# https://www.anandtech.com/show/9330/exynos-7420-deep-dive/6
+	# lock_value 60 /sys/kernel/hmp/load_avg_period_ms
+	lock_value 256 /sys/kernel/hmp/down_threshold
+	lock_value 640 /sys/kernel/hmp/up_threshold
+	lock_value 0 /sys/kernel/hmp/boost
 }
 
 function before_modify()
 {
 	chown 0.0 ${C0_GOVERNOR_DIR}/*
 	chmod 0666 ${C0_GOVERNOR_DIR}/*
-	lock_value 280000 ${C0_CPUFREQ_DIR}/scaling_min_freq
+	lock_value 580000 ${C0_CPUFREQ_DIR}/scaling_min_freq
 
-	set_value 1 /sys/devices/system/cpu/cpu2/online
+	set_value 1 /sys/devices/system/cpu/cpu4/online
 	chown 0.0 ${C1_GOVERNOR_DIR}/*
 	chmod 0666 ${C1_GOVERNOR_DIR}/*
-	lock_value 280000 ${C1_CPUFREQ_DIR}/scaling_min_freq
+	lock_value 680000 ${C1_CPUFREQ_DIR}/scaling_min_freq
 }
 
 function after_modify()
@@ -99,17 +90,17 @@ function after_modify()
 
 function powersave_custom()
 {
-	lock_value "0:380000 2:380000" /sys/module/cpu_boost/parameters/input_boost_freq
+	:
 }
 
 function balance_custom()
 {
-	lock_value "0:380000 2:380000" /sys/module/cpu_boost/parameters/input_boost_freq
+	:
 }
 
 function performance_custom()
 {
-	lock_value "0:380000 2:380000" /sys/module/cpu_boost/parameters/input_boost_freq
+	:
 }
 
 # $1:value $2:file path
@@ -160,7 +151,7 @@ function verify_param()
 	if [ "$action" = "powersave" ]; then
 		expected_value="powersave_tload"
 	elif [ "$action" = "balance" ]; then
-		expected_value="40 307000:45 691200:60 979000:75 1209000:85 1440000:90 2188000:97"
+		expected_value="58 598000:48 832000:68 949000:81 1248000:92 1690000:100"
 	elif [ "$action" = "performance" ]; then
 		expected_value="performance_tload"
 	fi
@@ -179,8 +170,8 @@ fi
 if [ "$action" = "debug" ]; then
 	echo "PixelCat"
 	echo "Author: 橘猫520 & yc9559(powercfg) & cjybyjk(script)"
-	echo "Platform: sd_821"
-	echo "Generated at Sun Nov  4 02:07:36 CST 2018"
+	echo "Platform: exynos_8895"
+	echo "Generated at Sun Nov  4 02:16:45 CST 2018"
 	echo ""
 	print_value "Cluster 0: min_freq" ${C0_CPUFREQ_DIR}/scaling_min_freq
 	print_param above_hispeed_delay
@@ -216,25 +207,21 @@ fi
 
 if [ "$action" = "balance" ]; then
 	balance_custom
-	set_param_all boostpulse_duration 7000
+	set_param_all boostpulse_duration 4000
 	set_param_all boost 1
-	set_param_all timer_rate 28000
+	set_param_all timer_rate 20000
 	set_param_all timer_slack 10000
 	set_param_all min_sampling_time 12000
-	set_param_all max_freq_hysteresis 300
-	set_param_all enable_prediction 0
-	set_param_all io_is_busy 0
-	set_param_all ignore_hispeed_on_notif 0
-	set_param_all use_sched_load 1
-	set_param_all use_migration_notif 1
-	set_param_big go_hispeed_load 75
-	set_param_little go_hispeed_load 60
-	set_param_big hispeed_freq 307000
-	set_param_little hispeed_freq 307000
-	set_param_big above_hispeed_delay "7000 800000:59000 1209000:71000 1600000:82000 1900000:99000 2150000:108000 2342000:115000"
-	set_param_little above_hispeed_delay "7000 800000:59000 1200000:71000 1440000:82000 1500000:99000 2100000:108000"
-	set_param_big target_loads "55 307000:45 691200:60 979000:75 1209000:80 1440000:82 1670000:89 1900000:91 2150000:95 2342000:97"
-	set_param_little target_loads "40 307000:45 691200:60 979000:75 1209000:85 1440000:90 2188000:97"
+	set_param_all io_is_busy "0 "
+	set_param_all ignore_hispeed_on_notif "0 "
+	set_param_big go_hispeed_load 73
+	set_param_little go_hispeed_load 65
+	set_param_big hispeed_freq 715000
+	set_param_little hispeed_freq 455000
+	set_param_big above_hispeed_delay "4000 741000:100000 962000:110000 1170000:120000 1469000:130000 1807000:140000 2002000:1500000 2314000:160000"
+	set_param_little above_hispeed_delay "4000 455000:70000 715000:90000 1053000:110000 1456000:130000 1690000:1500000"
+	set_param_big target_loads "72 858000:54 962000:61 1170000:68 1261000:75 1469000:82 1807000:89 2158000:96 2314000:100"
+	set_param_little target_loads "58 598000:48 832000:68 949000:81 1248000:92 1690000:100"
 	
 fi
 
