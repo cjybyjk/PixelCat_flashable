@@ -1,0 +1,277 @@
+#!/system/bin/sh
+# PixelCat
+# Author: 橘猫520 & yc9559(powercfg) & cjybyjk(script)
+# Platform: sd_821
+# Generated at Sat Nov  3 19:09:05 CST 2018
+
+C0_GOVERNOR_DIR="/sys/devices/system/cpu/cpu0/cpufreq/interactive"
+C1_GOVERNOR_DIR="/sys/devices/system/cpu/cpu2/cpufreq/interactive"
+C0_CPUFREQ_DIR="/sys/devices/system/cpu/cpu0/cpufreq"
+C1_CPUFREQ_DIR="/sys/devices/system/cpu/cpu2/cpufreq"
+
+# $1:timer_rate $2:value
+function set_param_little() 
+{
+	echo ${2} > ${C0_GOVERNOR_DIR}/${1}
+}
+
+# $1:timer_rate $2:value
+function set_param_big() 
+{
+	echo ${2} > ${C1_GOVERNOR_DIR}/${1}
+}
+
+# $1:timer_rate $2:value
+function set_param_all() 
+{
+	set_param_big ${1} "${2}"
+	set_param_little ${1} "${2}"
+}
+
+# $1:timer_rate
+function print_param() 
+{
+	print_value "LITTLE: ${1}" ${C0_GOVERNOR_DIR}/${1}
+	print_value "big: ${1}" ${C1_GOVERNOR_DIR}/${1}
+}
+
+function unify_environment() 
+{
+	# SELinux permissive
+	setenforce 0
+	# disable hotplug to switch governor
+	set_value 0 /sys/module/msm_thermal/core_control/enabled
+	echo -n disable > /sys/devices/soc/soc:qcom,bcl/mode
+	set_value N /sys/module/msm_thermal/parameters/enabled
+	# in case of using ondemand as default governor
+	lock_value "interactive" ${C0_CPUFREQ_DIR}/scaling_governor
+	lock_value "interactive" ${C1_CPUFREQ_DIR}/scaling_governor
+	# Perfd, nothing to worry about, if error the script will continue
+	stop perfd
+}
+
+function runonce_custom()
+{
+	set_value 90 /proc/sys/kernel/sched_spill_load
+	set_value 0 /proc/sys/kernel/sched_boost
+	set_value 1 /proc/sys/kernel/sched_prefer_sync_wakee_to_waker
+	set_value 40 /proc/sys/kernel/sched_init_task_load
+	set_value 3000000 /proc/sys/kernel/sched_freq_inc_notify
+
+	# avoid permission problem, do not set 0444
+	set_value 1 /dev/cpuset/background/cpus
+	set_value 0-1 /dev/cpuset/system-background/cpus
+	set_value 0-1,2-3 /dev/cpuset/foreground/cpus
+	set_value 0-1,2-3 /dev/cpuset/top-app/cpus
+
+	set_value 25 /proc/sys/kernel/sched_downmigrate
+	set_value 45 /proc/sys/kernel/sched_upmigrate
+
+	lock_value 2500 /sys/module/cpu_boost/parameters/input_boost_ms
+	lock_value 0 /sys/module/msm_performance/parameters/touchboost
+
+	set_param_little use_sched_load 1
+	lock_value 0 ${C0_GOVERNOR_DIR}/ignore_hispeed_on_notif
+	lock_value 0 ${C0_GOVERNOR_DIR}/enable_prediction
+	set_param_big use_sched_load 1
+	lock_value 0 ${C1_GOVERNOR_DIR}/ignore_hispeed_on_notif
+	lock_value 0 ${C1_GOVERNOR_DIR}/enable_prediction
+}
+
+function before_modify()
+{
+	chown 0.0 ${C0_GOVERNOR_DIR}/*
+	chmod 0666 ${C0_GOVERNOR_DIR}/*
+	lock_value 280000 ${C0_CPUFREQ_DIR}/scaling_min_freq
+
+	set_value 1 /sys/devices/system/cpu/cpu2/online
+	chown 0.0 ${C1_GOVERNOR_DIR}/*
+	chmod 0666 ${C1_GOVERNOR_DIR}/*
+	lock_value 280000 ${C1_CPUFREQ_DIR}/scaling_min_freq
+}
+
+function after_modify()
+{
+	chmod 0444 ${C0_GOVERNOR_DIR}/*
+	chmod 0444 ${C1_GOVERNOR_DIR}/*
+	verify_param
+}
+
+function powersave_custom()
+{
+	lock_value "0:380000 2:380000" /sys/module/cpu_boost/parameters/input_boost_freq
+}
+
+function balance_custom()
+{
+	lock_value "0:380000 2:380000" /sys/module/cpu_boost/parameters/input_boost_freq
+}
+
+function performance_custom()
+{
+	lock_value "0:380000 2:380000" /sys/module/cpu_boost/parameters/input_boost_freq
+}
+
+# $1:value $2:file path
+function set_value() 
+{
+	if [ -f $2 ]; then
+		echo $1 > $2
+	fi
+}
+
+# $1:value $2:file path
+function lock_value() 
+{
+	if [ -f $2 ]; then
+		# chown 0.0 $2
+		chmod 0666 $2
+		echo $1 > $2
+		chmod 0444 $2
+	fi
+}
+
+# $1:io-scheduler $2:block-path
+function set_io() 
+{
+	if [ -f $2/queue/scheduler ]; then
+		if [ `grep -c $1 $2/queue/scheduler` = 1 ]; then
+			echo $1 > $2/queue/scheduler
+			echo 512 > $2/queue/read_ahead_kb
+			lock_value 0 $2/queue/iostats
+			lock_value 256 $2/queue/nr_requests
+			lock_value 0 $2/queue/iosched/slice_idle
+		fi
+	fi
+}
+
+# $1:display-name $2:file path
+function print_value() 
+{
+	if [ -f $2 ]; then
+		echo $1
+		cat $2
+	fi
+}
+
+function verify_param() 
+{
+	expected_target=${C0_GOVERNOR_DIR}/target_loads
+	if [ "$action" = "powersave" ]; then
+		expected_value="70 460000:41 844000:56 1209000:67 1516000:74 2188000:85"
+	elif [ "$action" = "balance" ]; then
+		expected_value="55 460000:33 844000:46 1209000:57 1516000:68 2188000:79"
+	elif [ "$action" = "performance" ]; then
+		expected_value="40 460000:23 844000:31 1209000:37 1516000:49 2188000:62"
+	fi
+	if [ "`cat ${expected_target}`" = "${expected_value}" ]; then
+		echo "${action} OK"
+	else
+		echo "${action} FAIL"
+	fi
+}
+
+action=$1
+if [ ! -n "$action" ]; then
+    action="balance"
+fi
+
+if [ "$action" = "debug" ]; then
+	echo "PixelCat"
+	echo "Author: 橘猫520 & yc9559(powercfg) & cjybyjk(script)"
+	echo "Platform: sd_821"
+	echo "Generated at Sat Nov  3 19:09:05 CST 2018"
+	echo ""
+	print_value "Cluster 0: min_freq" ${C0_CPUFREQ_DIR}/scaling_min_freq
+	print_param above_hispeed_delay
+	print_param target_loads
+	print_value "sched_spill_load" /proc/sys/kernel/sched_spill_load
+	print_value "eMMC IO scheduler" /sys/block/mmcblk0/queue/scheduler
+	print_value "UFS IO scheduler" /sys/block/sda/queue/scheduler
+	which perfd
+	exit 0
+fi
+
+if [ ! -f /dev/.pixelcat_runonce ]; then
+	unify_environment
+fi
+
+before_modify
+
+# RunOnce
+if [ ! -f /dev/.pixelcat_runonce ]; then
+	# set flag
+	touch /dev/.pixelcat_runonce
+
+	runonce_custom
+
+	set_io cfq /sys/block/mmcblk0
+	set_io cfq /sys/block/sda
+fi
+
+if [ "$action" = "powersave" ]; then
+	powersave_custom
+	set_param_all boostpulse_duration 25000
+	set_param_all boost 1
+	set_param_all timer_rate 24000
+	set_param_all timer_slack 90000
+	set_param_all min_sampling_time 1000
+	set_param_all align_windows 0
+	set_param_all max_freq_hysteresis 1000
+	set_param_all use_sched_load 1
+	set_param_all use_migration_notif 1
+	set_param_all go_hispeed 70
+	set_param_big go_hispeed_freq 691000
+	set_param_little go_hispeed_freq 307000
+	set_param_big above_hispeed_delay "25000 307000:37000 691000:49000 1209000:63000 1516000:78000 1900000:89000 2150000:99000 2342000:112000"
+	set_param_little above_hispeed_delay "25000 460000:39000 844000:43000 1209000:57000 1516000:69000 2188000:84000"
+	set_param_big target_loads "70 307000:41 691000:53 1209000:41 1516000:69 1900000:78 2150000:84 2342000:97"
+	set_param_little target_loads "70 460000:41 844000:56 1209000:67 1516000:74 2188000:85"
+	
+fi
+
+if [ "$action" = "balance" ]; then
+	balance_custom
+	set_param_all boostpulse_duration 12000
+	set_param_all boost 1
+	set_param_all timer_rate 10000
+	set_param_all timer_slack 40000
+	set_param_all min_sampling_time 1000
+	set_param_all align_windows 0
+	set_param_all max_freq_hysteresis 1000
+	set_param_all use_sched_load 1
+	set_param_all use_migration_notif 1
+	set_param_all go_hispeed 55
+	set_param_big go_hispeed_freq 979000
+	set_param_little go_hispeed_freq 691000
+	set_param_big above_hispeed_delay "12000 307000:23000 691000:37000 1209000:56000 1516000:69000 1900000:78000 2150000:88000 2342000:97000"
+	set_param_little above_hispeed_delay "12000 460000:28000 844000:36000 1209000:47000 1516000:59000 2188000:74000"
+	set_param_big target_loads "55 307000:31 691000:45 1209000:41 1516000:63 1900000:69 2150000:78 2342000:89"
+	set_param_little target_loads "55 460000:33 844000:46 1209000:57 1516000:68 2188000:79"
+	
+fi
+
+if [ "$action" = "performance" ]; then
+	performance_custom
+	set_param_all boostpulse_duration 7000
+	set_param_all boost 1
+	set_param_all timer_rate 10000
+	set_param_all timer_slack 40000
+	set_param_all min_sampling_time 1000
+	set_param_all align_windows 0
+	set_param_all max_freq_hysteresis 1000
+	set_param_all use_sched_load 1
+	set_param_all use_migration_notif 1
+	set_param_all go_hispeed 40
+	set_param_big go_hispeed_freq 1440000
+	set_param_little go_hispeed_freq 902000
+	set_param_big above_hispeed_delay "7000 307000:13000 691000:24000 1209000:47000 1516000:54000 1900000:64000 2150000:73000 2342000:81000"
+	set_param_little above_hispeed_delay "7000 460000:17000 844000:27000 1209000:35000 1516000:49000 2188000:63000"
+	set_param_big target_loads "40 307000:21 691000:35 1209000:41 1516000:53 1900000:61 2150000:69 2342000:74"
+	set_param_little target_loads "40 460000:23 844000:31 1209000:37 1516000:49 2188000:62"
+	
+fi
+
+after_modify
+
+exit 0
