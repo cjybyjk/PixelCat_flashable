@@ -17,7 +17,7 @@ if [ ! -f "$basepath/$socModel/powercfg.apk" ]; then
     echo "! 没有适配这个型号"
     exit 0
 fi
-platformPath="${basepath}/../platforms/$socModel"
+platformPath="${basepath}/../../platforms/$socModel"
 
 rm -rf $platformPath
 mkdir -p $platformPath
