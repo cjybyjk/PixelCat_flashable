@@ -46,8 +46,8 @@ function check_timer_rate()
         fi
     done
     echo "目标 \"$timer_rate\" 可能存在错误, 与它最相似的是 \"$mostLikely\""
-    read -p "请在此进行修改(留空则不修改):" rightTimerRate <&3
-    [ -z "$rightTimerRate" ] && rightTimerRate="$timer_rate"
+    read -p "请在此进行修改(默认为 $mostLikely):" rightTimerRate <&3
+    [ -z "$rightTimerRate" ] && rightTimerRate="$mostLikely"
     timer_rate="$rightTimerRate"
 }
 
