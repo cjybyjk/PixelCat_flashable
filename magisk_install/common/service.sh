@@ -8,10 +8,6 @@ do
 sleep 10
 done
 
-# SELinux restore flag
-RestoreSELinux=false
-SEStatus=`getenforce`
-
 # mode detect
 MODE=`cat /data/pixelcat_mode`
 [ "" == "$MODE" ] && MODE=`cat /sdcard/pixelcat_mode`
@@ -20,5 +16,3 @@ MODE=`cat /data/pixelcat_mode`
 
 powercfg $MODE > /dev/pixelcat_state
 
-# restore SELinux
-$RestoreSELinux && setenforce $SEStatus
