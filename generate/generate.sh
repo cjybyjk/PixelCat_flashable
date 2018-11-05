@@ -1,5 +1,9 @@
 #!/system/bin/sh
 
+# 在这里修改项目名称和作者
+project_name="PixelCat"
+project_author="橘猫520"
+
 # 可以自行添加 timer_rate
 allowed_timer_rate=(
 "boost"
@@ -25,10 +29,31 @@ function trim()
     echo $1 | sed -e 's/^[ \t]*//g' -e 's/[ \t]*$//g'
 }
 
+function get_clusters()
+{
+	cluster_0="cpu0"
+	case "$socModel" in
+		"sd_820" | "sd_821" ) 
+			cluster_0="cpu0"
+			cluster_1="cpu2"
+			;;
+		"sd_660" | "sd_636" | "sd_835" | "exynos_9810" | "exynos_8895" ) 
+			cluster_0="cpu0"
+			cluster_1="cpu4"
+			;;
+		*) 
+			read -n "请输入cluster0(默认为 cpu0):" cluster_0
+			read -n "请输入cluster1(默认为 cpu4):" cluster_1
+			[ -z "$cluster_0" ] && cluster_0="cpu0"
+			[ -z "$cluster_1" ] && cluster_1="cpu4"
+			;;
+	esac
+}
+
 function savemode()
 {
     if [ "" != "$modeText" ]; then
-        sed -i "s/${mode}_params/$modeText/g" powercfg.apk
+        sed -i "s/# ${mode}_params/$modeText/g" powercfg.apk
         modeText=""
         echo "$mode saved"
     fi
@@ -51,20 +76,20 @@ function check_timer_rate()
     timer_rate="$rightTimerRate"
 }
 
-basepath=$(cd `dirname $0`; pwd)/template
+basepath=$(cd `dirname $0`; pwd)
+
+# 备份标准输入
+exec 3<&0
 
 read -p "输入Soc型号:" socModel
-if [ ! -f "$basepath/$socModel/powercfg.apk" ]; then
-    echo "! 没有适配这个型号"
-    exit 0
-fi
-platformPath="${basepath}/../../platforms/$socModel"
+platformPath="${basepath}/../platforms/$socModel"
+get_clusters
 
 rm -rf $platformPath
 mkdir -p $platformPath
 cd $platformPath
 
-cp -r $basepath/$socModel/* ./
+cp -r $basepath/powercfg_template ./powercfg.apk
 
 vim ./perf_text
 
@@ -88,9 +113,6 @@ mode="balance"
 
 OLD_IFS="$IFS" 
 IFS="："
-
-# 备份标准输入
-exec 3<&0
 
 while read lineinText
 do 
@@ -141,6 +163,12 @@ IFS="$OLD_IFS"
 
 rm ./perf_text
 
+# 写入相关信息
+sed -i "s/project_name/$project_name/g" powercfg.apk
+sed -i "s/project_author/$project_author/g" powercfg.apk
+sed -i "s/soc_model/$socModel/g" powercfg.apk
+sed -i "s/cluster_0/$cluster_0/g" powercfg.apk
+sed -i "s/cluster_1/$cluster_1/g" powercfg.apk
 sed -i "s/generate_date/`date`/g" powercfg.apk
 
 exit 0
