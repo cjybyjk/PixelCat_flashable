@@ -3,7 +3,7 @@ A script for flash interactive options script by [@橘猫520](http://www.coolapk
 
 好用的话记得给颗Star~
 
-** 注意：和 [WIPE_flashable](https://github.com/cjybyjk/WIPE_flashable/) 不能共存 **
+**注意：不能和 [WIPE_flashable](https://github.com/cjybyjk/WIPE_flashable/) 以及其他调度同时使用**
 
 ### Thanks to
 [@橘猫520](http://www.coolapk.com/u/628386)
@@ -43,24 +43,7 @@ A script for flash interactive options script by [@橘猫520](http://www.coolapk
 	powercfg balance #均衡
 	powercfg performance #性能
     ```
-#### SELinux问题 (SELinux problem)
-##### 如果这个脚本导致了SELinux问题(例如不正确的SELinux permissive),请按以下步骤操作
--	安装为magisk模块
-	- 使用文本编辑器打开这些文件(如果存在) , 将 `RestoreSELinux=false` 改为 `RestoreSELinux=true`, 然后保存
-		- /sbin/.core/img/PixelCat/service.sh
--	SuperSU Systemless
-	- 使用文本编辑器打开这些文件(如果存在) , 将 `RestoreSELinux=false` 改为 `RestoreSELinux=true`, 然后保存
-		- /su/su.d/99pixelcat
--	传统安装方式
-	- 使用文本编辑器打开这些文件(如果存在) , 将 `RestoreSELinux=false` 改为 `RestoreSELinux=true`, 然后保存
-		- /system/etc/init.qcom.post_boot.sh
-		- /vendor/bin/init.qcom.post_boot.sh
-		- /system/su.d/99pixelcat
-		- /system/etc/init.d/99pixelcat
-		- /system/addon.d/99pixelcat
-		- /system/etc/install-recovery.sh
-		- /system/bin/sysinit
-		- /system/bin/install-recovery.sh
+    输出 $MODE OK 即生效
 
 #### 卸载 (Uninstall)
 -	下载 WIPE_flashable Remover
