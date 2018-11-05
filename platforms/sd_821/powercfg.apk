@@ -2,7 +2,7 @@
 # PixelCat
 # Author: 橘猫520 & yc9559(powercfg) & cjybyjk(script)
 # Platform: sd_821
-# Generated at Sun Nov  4 02:07:36 CST 2018
+# Generated at Mon Nov  5 08:00:02 CST 2018
 
 C0_GOVERNOR_DIR="/sys/devices/system/cpu/cpu0/cpufreq/interactive"
 C1_GOVERNOR_DIR="/sys/devices/system/cpu/cpu2/cpufreq/interactive"
@@ -158,11 +158,11 @@ function verify_param()
 {
 	expected_target=${C0_GOVERNOR_DIR}/target_loads
 	if [ "$action" = "powersave" ]; then
-		expected_value="powersave_tload"
+		expected_value="70 460000:41 844000:56 1209000:67 1516000:74 2188000:85"
 	elif [ "$action" = "balance" ]; then
-		expected_value="40 307000:45 691200:60 979000:75 1209000:85 1440000:90 2188000:97"
+		expected_value="55 460000:33 844000:46 1209000:57 1516000:68 2188000:79"
 	elif [ "$action" = "performance" ]; then
-		expected_value="performance_tload"
+		expected_value="40 460000:23 844000:31 1209000:37 1516000:49 2188000:62"
 	fi
 	if [ "`cat ${expected_target}`" = "${expected_value}" ]; then
 		echo "${action} OK"
@@ -180,7 +180,7 @@ if [ "$action" = "debug" ]; then
 	echo "PixelCat"
 	echo "Author: 橘猫520 & yc9559(powercfg) & cjybyjk(script)"
 	echo "Platform: sd_821"
-	echo "Generated at Sun Nov  4 02:07:36 CST 2018"
+	echo "Generated at Mon Nov  5 08:00:02 CST 2018"
 	echo ""
 	print_value "Cluster 0: min_freq" ${C0_CPUFREQ_DIR}/scaling_min_freq
 	print_param above_hispeed_delay
@@ -211,36 +211,65 @@ fi
 
 if [ "$action" = "powersave" ]; then
 	powersave_custom
-	powersave_params
+	set_param_all boostpulse_duration 25000
+	set_param_all boost 1
+	set_param_all timer_rate 24000
+	set_param_all timer_slack 90000
+	set_param_all min_sampling_time 1000
+	set_param_all align_windows 0
+	set_param_all max_freq_hysteresis 1000
+	set_param_all use_sched_load 1
+	set_param_all use_migration_notif 1
+	set_param_all go_hispeed_load 70
+	set_param_big hispeed_freq 691000
+	set_param_little hispeed_freq 307000
+	set_param_big above_hispeed_delay "25000 307000:37000 691000:49000 1209000:63000 1516000:78000 1900000:89000 2150000:99000 2342000:112000"
+	set_param_little above_hispeed_delay "25000 460000:39000 844000:43000 1209000:57000 1516000:69000 2188000:84000"
+	set_param_big target_loads "70 307000:41 691000:53 1209000:41 1516000:69 1900000:78 2150000:84 2342000:97"
+	set_param_little target_loads "70 460000:41 844000:56 1209000:67 1516000:74 2188000:85"
+	
 fi
 
 if [ "$action" = "balance" ]; then
 	balance_custom
-	set_param_all boostpulse_duration 7000
+	set_param_all boostpulse_duration 12000
 	set_param_all boost 1
-	set_param_all timer_rate 28000
-	set_param_all timer_slack 10000
-	set_param_all min_sampling_time 12000
-	set_param_all max_freq_hysteresis 300
-	set_param_all enable_prediction 0
-	set_param_all io_is_busy 0
-	set_param_all ignore_hispeed_on_notif 0
+	set_param_all timer_rate 10000
+	set_param_all timer_slack 40000
+	set_param_all min_sampling_time 1000
+	set_param_all align_windows 0
+	set_param_all max_freq_hysteresis 1000
 	set_param_all use_sched_load 1
 	set_param_all use_migration_notif 1
-	set_param_big go_hispeed_load 75
-	set_param_little go_hispeed_load 60
-	set_param_big hispeed_freq 307000
-	set_param_little hispeed_freq 307000
-	set_param_big above_hispeed_delay "7000 800000:59000 1209000:71000 1600000:82000 1900000:99000 2150000:108000 2342000:115000"
-	set_param_little above_hispeed_delay "7000 800000:59000 1200000:71000 1440000:82000 1500000:99000 2100000:108000"
-	set_param_big target_loads "55 307000:45 691200:60 979000:75 1209000:80 1440000:82 1670000:89 1900000:91 2150000:95 2342000:97"
-	set_param_little target_loads "40 307000:45 691200:60 979000:75 1209000:85 1440000:90 2188000:97"
+	set_param_all go_hispeed_load 55
+	set_param_big hispeed_freq 979000
+	set_param_little hispeed_freq 691000
+	set_param_big above_hispeed_delay "12000 307000:23000 691000:37000 1209000:56000 1516000:69000 1900000:78000 2150000:88000 2342000:97000"
+	set_param_little above_hispeed_delay "12000 460000:28000 844000:36000 1209000:47000 1516000:59000 2188000:74000"
+	set_param_big target_loads "55 307000:31 691000:45 1209000:41 1516000:63 1900000:69 2150000:78 2342000:89"
+	set_param_little target_loads "55 460000:33 844000:46 1209000:57 1516000:68 2188000:79"
 	
 fi
 
 if [ "$action" = "performance" ]; then
 	performance_custom
-	performance_params
+	set_param_all boostpulse_duration 7000
+	set_param_all boost 1
+	set_param_all timer_rate 10000
+	set_param_all timer_slack 40000
+	set_param_all min_sampling_time 1000
+	set_param_all align_windows 0
+	set_param_all max_freq_hysteresis 1000
+	set_param_all use_sched_load 1
+	set_param_all use_migration_notif 1
+	set_param_all go_hispeed_load 40
+	set_param_big hispeed_freq 1440000
+	set_param_little hispeed_freq 902000
+	set_param_big above_hispeed_delay "7000 307000:13000 691000:24000 1209000:47000 1516000:54000 1900000:64000 2150000:73000 2342000:81000"
+	set_param_little above_hispeed_delay "7000 460000:17000 844000:27000 1209000:35000 1516000:49000 2188000:63000"
+	set_param_big target_loads "40 307000:21 691000:35 1209000:41 1516000:53 1900000:61 2150000:69 2342000:74"
+	set_param_little target_loads "40 460000:23 844000:31 1209000:37 1516000:49 2188000:62"
+	
 fi
 
 after_modify
