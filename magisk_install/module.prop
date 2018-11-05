@@ -1,7 +1,7 @@
 id=PixelCat
 name=PixelCat Systemless
-version=1104
-versionCode=110401
+version=1105.test
+versionCode=110500
 author=橘猫520 & cjybyjk @ coolapk
 description=A Module to insert PixelCat to system. 
 minMagisk=1500
