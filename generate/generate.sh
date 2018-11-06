@@ -108,7 +108,7 @@ vim ./perf_text
 echo -n "规范化调度参数(y/n):"
 read flag_TextReplace
 if [ "$flag_TextReplace" = "y" ]; then
-    sed -i 's/[A-Z]/\u&/g' ./perf_text
+    sed -i 's/[A-Z]/\l&/g' ./perf_text
     sed -i 's/:/：/g' ./perf_text
     sed -i 's/： /：/g' ./perf_text
     sed -i 's/：：/：/g' ./perf_text
