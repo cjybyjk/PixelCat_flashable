@@ -31,7 +31,6 @@ function trim()
 
 function get_clusters()
 {
-	cluster_0="cpu0"
 	case "$socModel" in
 		"sd_820" | "sd_821" )
 			is_big_little="y"
@@ -44,9 +43,9 @@ function get_clusters()
 			cluster_1="cpu4"
 			;;
 		*) 
-			read -n "是否使用big.LITTLE架构(y/n)" is_big_little
-			read -n "请输入cluster0(默认为 cpu0):" cluster_0
-			read -n "请输入cluster1(默认为 cpu4):" cluster_1
+			read -p "是否使用big.LITTLE架构(y/n)" is_big_little
+			read -p "请输入cluster0(默认为 cpu0):" cluster_0
+			read -p "请输入cluster1(默认为 cpu4):" cluster_1
 			[ -z "$is_big_little" ] && is_big_little="y"
 			[ -z "$cluster_0" ] && cluster_0="cpu0"
 			[ -z "$cluster_1" ] && cluster_1="cpu4"
@@ -91,7 +90,6 @@ License: GPL v3
 
 项目名称: $project_name
 项目作者: $project_author
-
 "
 
 read -p "输入Soc型号:" socModel
