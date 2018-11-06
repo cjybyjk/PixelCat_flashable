@@ -180,6 +180,7 @@ sed -i "s/project_author/$project_author/g" powercfg.apk
 sed -i "s/soc_model/$socModel/g" powercfg.apk
 sed -i "s/cluster_0/$cluster_0/g" powercfg.apk
 sed -i "s/cluster_1/$cluster_1/g" powercfg.apk
+sed -i "s/is_big_little/$is_big_little/g" powercfg.apk
 sed -i "s/generate_date/`date`/g" powercfg.apk
 
 exit 0
