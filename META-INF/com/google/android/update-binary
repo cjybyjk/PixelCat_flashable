@@ -60,7 +60,6 @@ ui_print "  PixelCat  installer"
 ui_print "  Authors:"
 ui_print "  PixelCat: ??520"
 ui_print "  ZIP flashable: cjybyjk"
-ui_print "     Version: 1031"
 ui_print "**************************"
 ui_print " "
 
