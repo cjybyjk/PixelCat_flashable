@@ -76,7 +76,6 @@ function getLikelyRank()
 	tmpR2L=0
 	iMax=${#1}
 	[ $iMax -gt ${#2} ] && iMax=${#2}
-	echo "max:$iMax">&4
 	let iMax=iMax-1
 	for((i=0;i<=$iMax;i++));
 	do
@@ -91,7 +90,6 @@ function getLikelyRank()
 		fi
 	done
 	let tmpRank=tmpL2R*tmpL2R+tmpR2L*tmpR2L
-	echo "compare:$1,$2,rank:$tmpRank">&4
 	echo $tmpRank
 }
 
@@ -115,9 +113,8 @@ function check_timer_rate()
 
 basepath=$(cd `dirname $0`; pwd)
 
-# 备份标准输入/O
+# 备份标准输入
 exec 3<&0
-exec 4>&0
 
 echo "powercfg script generator
 by cjybyjk @ coolapk
