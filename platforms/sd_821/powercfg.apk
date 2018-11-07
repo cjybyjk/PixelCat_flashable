@@ -2,7 +2,7 @@
 # PixelCat
 # Author: 橘猫520
 # Platform: sd_821
-# Generated at Tue Nov  6 23:08:54 CST 2018
+# Generated at Wed Nov  7 23:22:07 CST 2018
 # powercfg template by cjybyjk
 
 C0_GOVERNOR_DIR="/sys/devices/system/cpu/cpu0/cpufreq/interactive"
@@ -32,8 +32,8 @@ function set_param_big()
 # $1:timer_rate $2:value
 function set_param_all() 
 {
-	set_param_big ${1} "${2}"
-	[ "y" = "y" ] && set_param_little ${1} "${2}"
+	set_param_little ${1} "${2}"
+	[ "y" = "y" ] && set_param_big ${1} "${2}"
 }
 
 # $1:timer_rate
@@ -110,7 +110,7 @@ if [ "$action" = "debug" ]; then
 	echo "PixelCat"
 	echo "Author: 橘猫520"
 	echo "Platform: sd_821"
-	echo "Generated at Tue Nov  6 23:08:54 CST 2018"
+	echo "Generated at Wed Nov  7 23:22:07 CST 2018"
 	echo "powercfg template by cjybyjk"
 	echo ""
 	print_param above_hispeed_delay
@@ -125,7 +125,7 @@ if [ "$action" = "powersave" ]; then
 	set_param_all boost 1
 	set_param_all timer_rate 24000
 	set_param_all timer_slack 90000
-	set_param_all min_sampling_time 1000
+	set_param_all min_sample_time 1000
 	set_param_all align_windows 0
 	set_param_all max_freq_hysteresis 1000
 	set_param_all use_sched_load 1
@@ -145,7 +145,7 @@ if [ "$action" = "balance" ]; then
 	set_param_all boost 1
 	set_param_all timer_rate 10000
 	set_param_all timer_slack 40000
-	set_param_all min_sampling_time 1000
+	set_param_all min_sample_time 1000
 	set_param_all align_windows 0
 	set_param_all max_freq_hysteresis 1000
 	set_param_all use_sched_load 1
@@ -165,7 +165,7 @@ if [ "$action" = "performance" ]; then
 	set_param_all boost 1
 	set_param_all timer_rate 10000
 	set_param_all timer_slack 40000
-	set_param_all min_sampling_time 1000
+	set_param_all min_sample_time 1000
 	set_param_all align_windows 0
 	set_param_all max_freq_hysteresis 1000
 	set_param_all use_sched_load 1

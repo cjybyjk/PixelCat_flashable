@@ -2,7 +2,7 @@
 # PixelCat
 # Author: 橘猫520
 # Platform: exynos_8895
-# Generated at Tue Nov  6 23:18:39 CST 2018
+# Generated at Wed Nov  7 23:31:24 CST 2018
 # powercfg template by cjybyjk
 
 C0_GOVERNOR_DIR="/sys/devices/system/cpu/cpu0/cpufreq/interactive"
@@ -32,8 +32,8 @@ function set_param_big()
 # $1:timer_rate $2:value
 function set_param_all() 
 {
-	set_param_big ${1} "${2}"
-	[ "y" = "y" ] && set_param_little ${1} "${2}"
+	set_param_little ${1} "${2}"
+	[ "y" = "y" ] && set_param_big ${1} "${2}"
 }
 
 # $1:timer_rate
@@ -110,7 +110,7 @@ if [ "$action" = "debug" ]; then
 	echo "PixelCat"
 	echo "Author: 橘猫520"
 	echo "Platform: exynos_8895"
-	echo "Generated at Tue Nov  6 23:18:39 CST 2018"
+	echo "Generated at Wed Nov  7 23:31:24 CST 2018"
 	echo "powercfg template by cjybyjk"
 	echo ""
 	print_param above_hispeed_delay
@@ -129,7 +129,7 @@ if [ "$action" = "balance" ]; then
 	set_param_all boost 1
 	set_param_all timer_rate 20000
 	set_param_all timer_slack 10000
-	set_param_all min_sampling_time 12000
+	set_param_all min_sample_time 12000
 	set_param_all io_is_busy 0
 	set_param_all ignore_hispeed_on_notif 0
 	set_param_big go_hispeed_load 73
