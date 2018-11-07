@@ -13,7 +13,7 @@ C1_CPUFREQ_DIR="/sys/devices/system/cpu/cluster_1/cpufreq"
 if [ "n" = "is_big_little" ]; then
 	C0_GOVERNOR_DIR="/sys/devices/system/cpu/cpufreq/interactive"
 	C1_GOVERNOR_DIR=""
-	C0_CPUFREQ_DIR="/sys/devices/system/cpu/cpu0/cpufreq"
+	C0_CPUFREQ_DIR="/sys/devices/system/cpu/cluster_0/cpufreq"
 	C1_CPUFREQ_DIR=""
 fi
 
@@ -32,8 +32,8 @@ function set_param_big()
 # $1:timer_rate $2:value
 function set_param_all() 
 {
-	set_param_big ${1} "${2}"
-	[ "y" = "is_big_little" ] && set_param_little ${1} "${2}"
+	set_param_little ${1} "${2}"
+	[ "y" = "is_big_little" ] && set_param_big ${1} "${2}"
 }
 
 # $1:timer_rate
