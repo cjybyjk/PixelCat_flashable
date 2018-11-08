@@ -195,7 +195,7 @@ do
 	timer_rate=`echo $timer_rate | tr -d '[ \t]'`
 	[ -z "$param" ] && continue
 	check_timer_rate
-	[ "$timer_rate" = "target_loads" ] && [ "$cluster" = "little" ] && sed -i "s/${mode}_tload/$param/g" powercfg.apk
+	[ "$timer_rate" = "target_loads" ] && [ "$cluster" = "little" -o "n" = "$is_big_little" ] && sed -i "s/${mode}_tload/$param/g" powercfg.apk
 	[[ "$param" =~ " " ]] && param="\"$param\""
 	modeText=${modeText}"set_param_$cluster $timer_rate $param\n	" 
 done < ./perf_text
@@ -214,5 +214,9 @@ sed -i "s/cluster_0/$cluster_0/g" powercfg.apk
 sed -i "s/cluster_1/$cluster_1/g" powercfg.apk
 sed -i "s/is_big_little/$is_big_little/g" powercfg.apk
 sed -i "s/generate_date/`date`/g" powercfg.apk
+
+sed -i "s/# balance_params/:/g" powercfg.apk
+sed -i "s/# powersave_params/:/g" powercfg.apk
+sed -i "s/# performance_params/:/g" powercfg.apk
 
 exit 0
