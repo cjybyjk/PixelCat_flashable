@@ -1,5 +1,5 @@
 # PixelCat_flashable
-### 注意：这个存档已不再更新！以后所有的更新都会在 [这里](https://github.com/cjybyjk/powercfg_generator/tree/PixelCat) 进行
+### 注意：这个存档已不再更新！以后所有的更新都会在 [这里](https://github.com/cjybyjk/powercfg_generator/tree/PixelCat/flashable) 进行
 
 A script for flash interactive options script by [@橘猫520](http://www.coolapk.com/u/628386) into your device
 
